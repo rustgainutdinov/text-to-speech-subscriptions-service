@@ -9,62 +9,62 @@ import (
 func TestBalanceService_CreateBalance(t *testing.T) {
 	repo := newMockBalanceRepo()
 	service := NewBalanceService(repo)
-	balanceId := BalanceID(uuid.New())
-	err := service.CreateBalance(balanceId)
+	userId := uuid.New()
+	err := service.CreateBalance(userId)
 	assert.Nil(t, err)
-	balance, err := repo.FindOne(balanceId)
+	balance, err := repo.FindOne(userId)
 	assert.Nil(t, err)
-	assert.Equal(t, balanceId, balance.ID())
+	assert.Equal(t, userId, balance.UserID())
 	assert.Equal(t, 0, balance.Score())
 }
 
 func TestBalanceService_RemoveBalance(t *testing.T) {
 	repo := newMockBalanceRepo()
 	service := NewBalanceService(repo)
-	balanceId := BalanceID(uuid.New())
-	err := service.CreateBalance(balanceId)
+	userId := uuid.New()
+	err := service.CreateBalance(userId)
 	assert.Nil(t, err)
-	_, err = repo.FindOne(balanceId)
+	_, err = repo.FindOne(userId)
 	assert.Nil(t, err)
-	err = service.RemoveBalance(balanceId)
+	err = service.RemoveBalance(userId)
 	assert.Nil(t, err)
-	_, err = repo.FindOne(balanceId)
+	_, err = repo.FindOne(userId)
 	assert.Equal(t, ErrBalanceIsNotFound, err)
 }
 
 func TestBalanceService_TopUpBalance(t *testing.T) {
 	repo := newMockBalanceRepo()
 	service := NewBalanceService(repo)
-	balanceId := BalanceID(uuid.New())
-	err := service.CreateBalance(balanceId)
+	userID := uuid.New()
+	err := service.CreateBalance(userID)
 	assert.Nil(t, err)
-	amountOfSeconds := 27
-	err = service.TopUpBalance(balanceId, amountOfSeconds)
+	amountOfSymbols := 27
+	err = service.TopUpBalance(userID, amountOfSymbols)
 	assert.Nil(t, err)
-	balance, err := repo.FindOne(balanceId)
+	balance, err := repo.FindOne(userID)
 	assert.Nil(t, err)
 	assert.NotNil(t, balance)
-	assert.Equal(t, amountOfSeconds, balance.Score())
+	assert.Equal(t, amountOfSymbols, balance.Score())
 }
 
 func TestBalanceService_WriteOffFromBalance(t *testing.T) {
 	repo := newMockBalanceRepo()
 	service := NewBalanceService(repo)
-	balanceId := BalanceID(uuid.New())
-	err := service.CreateBalance(balanceId)
+	userID := uuid.New()
+	err := service.CreateBalance(userID)
 	assert.Nil(t, err)
-	amountOfSeconds := 88
-	err = service.TopUpBalance(balanceId, amountOfSeconds)
+	amountOfSymbols := 88
+	err = service.TopUpBalance(userID, amountOfSymbols)
 	assert.Nil(t, err)
-	amountOfSecondsToWriteOff := 34
-	err = service.WriteOffFromBalance(balanceId, amountOfSecondsToWriteOff)
+	amountOfSymbolsToWriteOff := 34
+	err = service.WriteOffFromBalance(userID, amountOfSymbolsToWriteOff)
 	assert.Nil(t, err)
-	amountOfSeconds -= amountOfSecondsToWriteOff
-	balance, err := repo.FindOne(balanceId)
+	amountOfSymbols -= amountOfSymbolsToWriteOff
+	balance, err := repo.FindOne(userID)
 	assert.Nil(t, err)
-	assert.Equal(t, amountOfSeconds, balance.Score())
-	err = service.WriteOffFromBalance(balanceId, amountOfSeconds+1)
-	assert.Equal(t, err, ErrThereAreNotEnoughSecondsOnTheBalance)
+	assert.Equal(t, amountOfSymbols, balance.Score())
+	err = service.WriteOffFromBalance(userID, amountOfSymbols+1)
+	assert.Equal(t, err, ErrThereAreNotEnoughSymbolsOnTheBalance)
 
 }
 
@@ -72,18 +72,18 @@ type mockBalanceRepo struct {
 	balances []Balance
 }
 
-func (c *mockBalanceRepo) FindOne(balanceID BalanceID) (Balance, error) {
+func (c *mockBalanceRepo) FindOne(userID uuid.UUID) (Balance, error) {
 	for _, balance := range c.balances {
-		if balance.ID() == balanceID {
+		if balance.UserID() == userID {
 			return balance, nil
 		}
 	}
 	return nil, ErrBalanceIsNotFound
 }
 
-func (c *mockBalanceRepo) Remove(balanceID BalanceID) error {
+func (c *mockBalanceRepo) Remove(userID uuid.UUID) error {
 	for i, balance := range c.balances {
-		if balance.ID() == balanceID {
+		if balance.UserID() == userID {
 			copy(c.balances[i:], c.balances[i+1:])
 			c.balances = c.balances[:len(c.balances)-1]
 			return nil
@@ -94,7 +94,7 @@ func (c *mockBalanceRepo) Remove(balanceID BalanceID) error {
 
 func (c *mockBalanceRepo) Store(balance Balance) error {
 	for i, repoBalance := range c.balances {
-		if repoBalance.ID() == balance.ID() {
+		if repoBalance.UserID() == balance.UserID() {
 			c.balances[i] = balance
 			return nil
 		}

@@ -15,7 +15,7 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-	dbInfo := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", envConf.DBUser, envConf.DBPass, envConf.DBName)
+	dbInfo := fmt.Sprintf("user=%s password=%s dbname=%s port=%s sslmode=disable", envConf.DBUser, envConf.DBPass, envConf.DBName, envConf.DBPort)
 	db, err := sqlx.Open("postgres", dbInfo)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -27,10 +27,4 @@ func main() {
 	srv := &http.Server{Addr: envConf.ServeRESTAddress, Handler: handler}
 	fmt.Println(srv.ListenAndServe())
 	_ = srv.Shutdown(context.Background())
-}
-
-func listenAndServe(srv *http.Server) {
-	go func() {
-		fmt.Println(srv.ListenAndServe())
-	}()
 }

@@ -8,6 +8,7 @@ type config struct {
 	ServeRESTAddress string `envconfig:"serve_rest_address" default:":8000"`
 	DBUser           string `envconfig:"db_user"`
 	DBName           string `envconfig:"db_name"`
+	DBPort           string `envconfig:"db_port"`
 	DBPass           string `envconfig:"db_pass"`
 }
 

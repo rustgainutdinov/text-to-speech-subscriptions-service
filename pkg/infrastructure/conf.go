@@ -10,6 +10,7 @@ type config struct {
 	DBName           string `envconfig:"db_name"`
 	DBPort           string `envconfig:"db_port"`
 	DBPass           string `envconfig:"db_pass"`
+	DBHost           string `envconfig:"db_host"`
 }
 
 func ParseEnv() (*config, error) {

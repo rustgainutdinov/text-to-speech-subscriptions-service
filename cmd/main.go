@@ -15,7 +15,7 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-	dbInfo := fmt.Sprintf("user=%s password=%s dbname=%s port=%s sslmode=disable", envConf.DBUser, envConf.DBPass, envConf.DBName, envConf.DBPort)
+	dbInfo := fmt.Sprintf("user=%s password=%s dbname=%s port=%s host=%s sslmode=disable", envConf.DBUser, envConf.DBPass, envConf.DBName, envConf.DBPort, envConf.DBHost)
 	db, err := sqlx.Open("postgres", dbInfo)
 	if err != nil {
 		fmt.Println(err.Error())

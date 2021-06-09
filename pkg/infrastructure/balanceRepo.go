@@ -16,11 +16,15 @@ func (c *balanceRepo) FindOne(userID uuid.UUID) (domain.Balance, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(balance) == 0 {
+		return nil, domain.ErrBalanceIsNotFound
+	}
 	return domain.LoadBalance(userID, balance[0].Score), err
 }
 
 func (c *balanceRepo) Remove(userID uuid.UUID) error {
-	return nil
+	_, err := c.db.Query("DELETE FROM balance WHERE id_user=$1", userID)
+	return err
 }
 
 func (c *balanceRepo) Store(balance domain.Balance) error {

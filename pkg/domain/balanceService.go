@@ -35,9 +35,6 @@ func (c *balanceService) RemoveBalance(userID uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	if foundedBalance == nil {
-		return ErrBalanceIsNotFound
-	}
 	return c.repo.Remove(foundedBalance.UserID())
 }
 

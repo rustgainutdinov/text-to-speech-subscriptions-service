@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"subscriptions-service/pkg/app"
 	"subscriptions-service/pkg/domain"
 )
 
@@ -20,6 +21,7 @@ func handleError(err error, w http.ResponseWriter) {
 	case domain.ErrAmountOfSymbolsIsInvalid,
 		domain.ErrBalanceIsNotFound,
 		domain.ErrThereAreNotEnoughSymbolsOnTheBalance,
+		app.ErrBalanceIsNotFound,
 		ErrBodyParsing,
 		ErrInvalidRequest:
 		w.WriteHeader(http.StatusBadRequest)

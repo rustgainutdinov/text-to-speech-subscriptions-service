@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type Server interface {
@@ -14,6 +15,7 @@ type Server interface {
 	topUpBalance(w http.ResponseWriter, r *http.Request)
 	writeOffFromBalance(w http.ResponseWriter, r *http.Request)
 	removeBalance(w http.ResponseWriter, r *http.Request)
+	canWriteOffFromBalance(w http.ResponseWriter, r *http.Request)
 }
 
 var ErrInvalidRequest = fmt.Errorf("invalid request")
@@ -29,7 +31,7 @@ func (s *server) topUpBalance(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	balanceService := s.dependencyContainer.NewBalanceService()
+	balanceService := s.dependencyContainer.newBalanceService()
 	err = balanceService.TopUpBalance(userID, score)
 	if err != nil {
 		handleError(err, w)
@@ -44,7 +46,7 @@ func (s *server) writeOffFromBalance(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	balanceService := s.dependencyContainer.NewBalanceService()
+	balanceService := s.dependencyContainer.newBalanceService()
 	err = balanceService.WriteOffFromBalance(userID, score)
 	if err != nil {
 		handleError(err, w)
@@ -59,7 +61,7 @@ func (s *server) createBalance(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	balanceService := s.dependencyContainer.NewBalanceService()
+	balanceService := s.dependencyContainer.newBalanceService()
 	err = balanceService.CreateBalance(userID)
 	if err != nil {
 		handleError(err, w)
@@ -74,13 +76,44 @@ func (s *server) removeBalance(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	balanceService := s.dependencyContainer.NewBalanceService()
+	balanceService := s.dependencyContainer.newBalanceService()
 	err = balanceService.RemoveBalance(userID)
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 	setOkResponse(w)
+}
+
+func (s *server) canWriteOffFromBalance(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("userID")
+	score := r.URL.Query().Get("score")
+	if userID == "" || score == "" {
+		handleError(ErrInvalidRequest, w)
+		return
+	}
+	userUUID, err := parseUUID(userID)
+	if err != nil {
+		handleError(ErrInvalidRequest, w)
+		return
+	}
+	scoreNum, err := strconv.ParseInt(score, 10, 64)
+	if err != nil {
+		handleError(ErrInvalidRequest, w)
+		return
+	}
+	balanceService := s.dependencyContainer.newBalanceService()
+	canWriteOff, err := balanceService.CanWriteOffFromBalance(userUUID, int(scoreNum))
+	if err != nil {
+		handleError(err, w)
+		return
+	}
+	b, err := json.Marshal(canWriteOffResponse{Result: canWriteOff})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, _ = io.WriteString(w, string(b))
 }
 
 type createBalanceDTO struct {
@@ -94,6 +127,10 @@ type balanceMovementDTO struct {
 
 type msgResponse struct {
 	Msg string `json:"msg"`
+}
+
+type canWriteOffResponse struct {
+	Result bool `json:"result"`
 }
 
 func setOkResponse(w http.ResponseWriter) {

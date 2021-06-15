@@ -12,6 +12,7 @@ func Router(srv Server) http.Handler {
 	s.HandleFunc("/balance/topUp", srv.topUpBalance).Methods(http.MethodPost)
 	s.HandleFunc("/balance/writeOff", srv.writeOffFromBalance).Methods(http.MethodPost)
 	s.HandleFunc("/balance/remove", srv.removeBalance).Methods(http.MethodPost)
+	s.HandleFunc("/balance/canWriteOff", srv.canWriteOffFromBalance).Methods(http.MethodGet)
 	return initJSONResponse(r)
 }
 

@@ -7,20 +7,23 @@ import (
 )
 
 type DependencyContainer interface {
-	newBalanceRepo() domain.BalanceRepo
-	NewBalanceService() app.BalanceService
+	newBalanceService() app.BalanceService
 }
 
 type dependencyContainer struct {
 	db *sqlx.DB
 }
 
-func (d *dependencyContainer) NewBalanceService() app.BalanceService {
-	return app.NewBalanceService(d.newBalanceRepo())
+func (d *dependencyContainer) newBalanceService() app.BalanceService {
+	return app.NewBalanceService(d.newBalanceRepo(), d.newBalanceQueryService())
 }
 
 func (d *dependencyContainer) newBalanceRepo() domain.BalanceRepo {
 	return NewBalanceRepo(d.db)
+}
+
+func (d *dependencyContainer) newBalanceQueryService() app.BalanceQueryService {
+	return NewBalanceQueryServiceImpl(d.db)
 }
 
 func NewDependencyContainer(db *sqlx.DB) DependencyContainer {

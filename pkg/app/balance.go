@@ -10,10 +10,12 @@ type BalanceService interface {
 	RemoveBalance(userID uuid.UUID) error
 	TopUpBalance(userID uuid.UUID, score int) error
 	WriteOffFromBalance(userID uuid.UUID, score int) error
+	CanWriteOffFromBalance(userID uuid.UUID, score int) (bool, error)
 }
 
 type balanceService struct {
-	balanceRepo domain.BalanceRepo
+	balanceRepo  domain.BalanceRepo
+	queryService BalanceQueryService
 }
 
 func (b *balanceService) CreateBalance(userID uuid.UUID) error {
@@ -32,6 +34,14 @@ func (b *balanceService) WriteOffFromBalance(userID uuid.UUID, score int) error 
 	return domain.NewBalanceService(b.balanceRepo).WriteOffFromBalance(userID, score)
 }
 
-func NewBalanceService(balanceRepo domain.BalanceRepo) BalanceService {
-	return &balanceService{balanceRepo: balanceRepo}
+func (b *balanceService) CanWriteOffFromBalance(userID uuid.UUID, score int) (bool, error) {
+	currScore, err := b.queryService.GetBalanceScoreByUserID(userID)
+	if err != nil {
+		return false, err
+	}
+	return currScore-score >= 0, err
+}
+
+func NewBalanceService(balanceRepo domain.BalanceRepo, queryService BalanceQueryService) BalanceService {
+	return &balanceService{balanceRepo: balanceRepo, queryService: queryService}
 }

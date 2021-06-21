@@ -33,7 +33,7 @@ func (e *ExternalEventListener) ActivateTextTranslatedHandler() {
 			} else {
 				log.Printf("Acknowledged message")
 			}
-			err = domain.NewBalanceService(e.balanceRepo).WriteOffFromBalance(userID, eventInfo.AmountOfSymbols)
+			err = domain.NewBalanceService(e.balanceRepo).WriteOffFromBalance(userID, eventInfo.Score)
 			if err != nil {
 				log.Printf("Error decoding JSON: %s", err)
 			}
@@ -58,6 +58,6 @@ func NewExternalEventListener(rabbitMqChannel *amqp.Channel, balanceRepo domain.
 }
 
 type textTranslatedInfo struct {
-	UserID          string `json:"userID"`
-	AmountOfSymbols int    `json:"amountOfSymbols"`
+	UserID string `json:"userID"`
+	Score  int    `json:"score"`
 }

@@ -1,4 +1,4 @@
-package infrastructure
+package server
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ func handleError(err error, w http.ResponseWriter) {
 		return
 	}
 	switch err {
-	case domain.ErrAmountOfSymbolsIsInvalid,
+	case domain.ErrScoreIsInvalid,
 		domain.ErrBalanceIsNotFound,
 		domain.ErrThereAreNotEnoughSymbolsOnTheBalance,
 		app.ErrBalanceIsNotFound,

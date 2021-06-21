@@ -1,4 +1,4 @@
-package infrastructure
+package postgres
 
 import (
 	"github.com/google/uuid"
@@ -23,12 +23,12 @@ func (c *balanceRepo) FindOne(userID uuid.UUID) (domain.Balance, error) {
 }
 
 func (c *balanceRepo) Remove(userID uuid.UUID) error {
-	_, err := c.db.Query("DELETE FROM balance WHERE id_user=$1", userID)
+	_, err := c.db.Exec("DELETE FROM balance WHERE id_user=$1", userID)
 	return err
 }
 
 func (c *balanceRepo) Store(balance domain.Balance) error {
-	_, err := c.db.Query(
+	_, err := c.db.Exec(
 		`INSERT INTO balance (id_user, score)
 				VALUES ($1, $2)
 				ON CONFLICT (id_user)

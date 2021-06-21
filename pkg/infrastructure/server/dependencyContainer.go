@@ -1,4 +1,4 @@
-package infrastructure
+package server
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 	"github.com/streadway/amqp"
 	"subscriptions-service/pkg/app"
 	"subscriptions-service/pkg/domain"
+	"subscriptions-service/pkg/infrastructure/externalService"
+	"subscriptions-service/pkg/infrastructure/postgres"
 )
 
 type DependencyContainer interface {
@@ -14,7 +16,7 @@ type DependencyContainer interface {
 
 type dependencyContainer struct {
 	db                    *sqlx.DB
-	externalEventListener *ExternalEventListener
+	externalEventListener *externalService.ExternalEventListener
 }
 
 func (d *dependencyContainer) newBalanceService() app.BalanceService {
@@ -22,21 +24,21 @@ func (d *dependencyContainer) newBalanceService() app.BalanceService {
 }
 
 func (d *dependencyContainer) newBalanceRepo() domain.BalanceRepo {
-	return NewBalanceRepo(d.db)
+	return postgres.NewBalanceRepo(d.db)
 }
 
 func (d *dependencyContainer) newBalanceQueryService() app.BalanceQueryService {
-	return NewBalanceQueryServiceImpl(d.db)
+	return postgres.NewBalanceQueryServiceImpl(d.db)
 }
 
 func NewDependencyContainer(db *sqlx.DB, rabbitMqChannel *amqp.Channel) DependencyContainer {
 	dp := &dependencyContainer{db: db}
-	externalEventListener, err := NewExternalEventListener(rabbitMqChannel, dp.newBalanceRepo())
+	externalEventListener, err := externalService.NewExternalEventListener(rabbitMqChannel, dp.newBalanceRepo())
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	if externalEventListener != nil {
-		externalEventListener.activateTextTranslatedHandler()
+		externalEventListener.ActivateTextTranslatedHandler()
 		dp.externalEventListener = externalEventListener
 	}
 	return dp

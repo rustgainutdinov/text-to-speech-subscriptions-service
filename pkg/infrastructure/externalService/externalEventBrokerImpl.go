@@ -1,4 +1,4 @@
-package infrastructure
+package externalService
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ type ExternalEventListener struct {
 	balanceRepo    domain.BalanceRepo
 }
 
-func (e *ExternalEventListener) activateTextTranslatedHandler() {
+func (e *ExternalEventListener) ActivateTextTranslatedHandler() {
 	go func() {
 		log.Printf("Consumer ready, PID: %d", os.Getpid())
 		for d := range e.messageChannel {

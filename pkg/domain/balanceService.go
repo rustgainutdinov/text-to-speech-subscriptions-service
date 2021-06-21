@@ -8,8 +8,8 @@ import (
 type BalanceService interface {
 	CreateBalance(userID uuid.UUID) error
 	RemoveBalance(userID uuid.UUID) error
-	TopUpBalance(userID uuid.UUID, amountOfSymbols int) error
-	WriteOffFromBalance(userID uuid.UUID, amountOfSymbols int) error
+	TopUpBalance(userID uuid.UUID, score int) error
+	WriteOffFromBalance(userID uuid.UUID, score int) error
 }
 
 var ErrBalanceIsAlreadyExists = fmt.Errorf("balance is already exists")
@@ -38,24 +38,24 @@ func (c *balanceService) RemoveBalance(userID uuid.UUID) error {
 	return c.repo.Remove(foundedBalance.UserID())
 }
 
-func (c *balanceService) TopUpBalance(userID uuid.UUID, amountOfSymbols int) error {
+func (c *balanceService) TopUpBalance(userID uuid.UUID, score int) error {
 	balance, err := c.repo.FindOne(userID)
 	if err != nil {
 		return err
 	}
-	err = balance.topUp(amountOfSymbols)
+	err = balance.topUp(score)
 	if err != nil {
 		return err
 	}
 	return c.repo.Store(balance)
 }
 
-func (c *balanceService) WriteOffFromBalance(userID uuid.UUID, amountOfSymbols int) error {
+func (c *balanceService) WriteOffFromBalance(userID uuid.UUID, score int) error {
 	balance, err := c.repo.FindOne(userID)
 	if err != nil {
 		return err
 	}
-	err = balance.writeOff(amountOfSymbols)
+	err = balance.writeOff(score)
 	if err != nil {
 		return err
 	}

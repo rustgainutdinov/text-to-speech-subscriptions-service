@@ -14,11 +14,11 @@ type BalanceRepo interface {
 type Balance interface {
 	UserID() uuid.UUID
 	Score() int
-	topUp(amountOfSymbols int) error
-	writeOff(amountOfSymbols int) error
+	topUp(score int) error
+	writeOff(score int) error
 }
 
-var ErrAmountOfSymbolsIsInvalid = fmt.Errorf("amount of symbols is invalid")
+var ErrScoreIsInvalid = fmt.Errorf("amount of symbols is invalid")
 var ErrThereAreNotEnoughSymbolsOnTheBalance = fmt.Errorf("there are not enough symbols on score")
 var ErrBalanceIsNotFound = fmt.Errorf("balance is not found")
 
@@ -35,22 +35,22 @@ func (c *balance) UserID() uuid.UUID {
 	return c.userID
 }
 
-func (c *balance) topUp(amountOfSymbols int) error {
-	if amountOfSymbols < 1 {
-		return ErrAmountOfSymbolsIsInvalid
+func (c *balance) topUp(score int) error {
+	if score < 1 {
+		return ErrScoreIsInvalid
 	}
-	c.score += amountOfSymbols
+	c.score += score
 	return nil
 }
 
-func (c *balance) writeOff(amountOfSymbols int) error {
-	if amountOfSymbols < 1 {
-		return ErrAmountOfSymbolsIsInvalid
+func (c *balance) writeOff(score int) error {
+	if score < 1 {
+		return ErrScoreIsInvalid
 	}
-	if c.score-amountOfSymbols < 0 {
+	if c.score-score < 0 {
 		return ErrThereAreNotEnoughSymbolsOnTheBalance
 	}
-	c.score -= amountOfSymbols
+	c.score -= score
 	return nil
 }
 

@@ -38,13 +38,13 @@ func TestBalanceService_TopUpBalance(t *testing.T) {
 	userID := uuid.New()
 	err := service.CreateBalance(userID)
 	assert.Nil(t, err)
-	amountOfSymbols := 27
-	err = service.TopUpBalance(userID, amountOfSymbols)
+	score := 27
+	err = service.TopUpBalance(userID, score)
 	assert.Nil(t, err)
 	balance, err := repo.FindOne(userID)
 	assert.Nil(t, err)
 	assert.NotNil(t, balance)
-	assert.Equal(t, amountOfSymbols, balance.Score())
+	assert.Equal(t, score, balance.Score())
 }
 
 func TestBalanceService_WriteOffFromBalance(t *testing.T) {
@@ -53,17 +53,17 @@ func TestBalanceService_WriteOffFromBalance(t *testing.T) {
 	userID := uuid.New()
 	err := service.CreateBalance(userID)
 	assert.Nil(t, err)
-	amountOfSymbols := 88
-	err = service.TopUpBalance(userID, amountOfSymbols)
+	score := 88
+	err = service.TopUpBalance(userID, score)
 	assert.Nil(t, err)
-	amountOfSymbolsToWriteOff := 34
-	err = service.WriteOffFromBalance(userID, amountOfSymbolsToWriteOff)
+	scoreToWriteOff := 34
+	err = service.WriteOffFromBalance(userID, scoreToWriteOff)
 	assert.Nil(t, err)
-	amountOfSymbols -= amountOfSymbolsToWriteOff
+	score -= scoreToWriteOff
 	balance, err := repo.FindOne(userID)
 	assert.Nil(t, err)
-	assert.Equal(t, amountOfSymbols, balance.Score())
-	err = service.WriteOffFromBalance(userID, amountOfSymbols+1)
+	assert.Equal(t, score, balance.Score())
+	err = service.WriteOffFromBalance(userID, score+1)
 	assert.Equal(t, err, ErrThereAreNotEnoughSymbolsOnTheBalance)
 
 }

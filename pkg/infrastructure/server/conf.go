@@ -1,4 +1,4 @@
-package infrastructure
+package server
 
 import "github.com/kelseyhightower/envconfig"
 

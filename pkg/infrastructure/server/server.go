@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"subscriptions-service/pkg/infrastructure"
 )
 
 type Server interface {
@@ -22,7 +23,7 @@ var ErrInvalidRequest = fmt.Errorf("invalid request")
 var ErrBodyParsing = fmt.Errorf("body parsing error")
 
 type server struct {
-	dependencyContainer DependencyContainer
+	dependencyContainer infrastructure.DependencyContainer
 }
 
 func (s *server) topUpBalance(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +32,7 @@ func (s *server) topUpBalance(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	balanceService := s.dependencyContainer.newBalanceService()
+	balanceService := s.dependencyContainer.NewBalanceService()
 	err = balanceService.TopUpBalance(userID, score)
 	if err != nil {
 		handleError(err, w)
@@ -46,7 +47,7 @@ func (s *server) writeOffFromBalance(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	balanceService := s.dependencyContainer.newBalanceService()
+	balanceService := s.dependencyContainer.NewBalanceService()
 	err = balanceService.WriteOffFromBalance(userID, score)
 	if err != nil {
 		handleError(err, w)
@@ -61,7 +62,7 @@ func (s *server) createBalance(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	balanceService := s.dependencyContainer.newBalanceService()
+	balanceService := s.dependencyContainer.NewBalanceService()
 	err = balanceService.CreateBalance(userID)
 	if err != nil {
 		handleError(err, w)
@@ -76,7 +77,7 @@ func (s *server) removeBalance(w http.ResponseWriter, r *http.Request) {
 		handleError(err, w)
 		return
 	}
-	balanceService := s.dependencyContainer.newBalanceService()
+	balanceService := s.dependencyContainer.NewBalanceService()
 	err = balanceService.RemoveBalance(userID)
 	if err != nil {
 		handleError(err, w)
@@ -102,7 +103,7 @@ func (s *server) canWriteOffFromBalance(w http.ResponseWriter, r *http.Request) 
 		handleError(ErrInvalidRequest, w)
 		return
 	}
-	balanceService := s.dependencyContainer.newBalanceService()
+	balanceService := s.dependencyContainer.NewBalanceService()
 	canWriteOff, err := balanceService.CanWriteOffFromBalance(userUUID, int(scoreNum))
 	if err != nil {
 		handleError(err, w)
@@ -194,6 +195,6 @@ func parseUUID(str string) (uuid.UUID, error) {
 	return uid, nil
 }
 
-func NewServer(dependencyContainer DependencyContainer) Server {
+func NewServer(dependencyContainer infrastructure.DependencyContainer) Server {
 	return &server{dependencyContainer: dependencyContainer}
 }

@@ -11,15 +11,13 @@ type balanceRepo struct {
 }
 
 func (c *balanceRepo) FindOne(userID uuid.UUID) (domain.Balance, error) {
-	var balance []sqlxBalance
-	err := c.db.Select(&balance, "SELECT * FROM balance WHERE id_user=$1 LIMIT 1", userID.String())
+	var balance sqlxBalance
+	err := c.db.Get(&balance, "SELECT * FROM balance WHERE id_user=$1", userID.String())
 	if err != nil {
 		return nil, err
 	}
-	if len(balance) == 0 {
-		return nil, domain.ErrBalanceIsNotFound
-	}
-	return domain.LoadBalance(userID, balance[0].Score), err
+	//TODO: добавить обработку ошибки not found (ErrTranslationIsNotFound)
+	return domain.LoadBalance(userID, balance.Score), err
 }
 
 func (c *balanceRepo) Remove(userID uuid.UUID) error {

@@ -1,10 +1,10 @@
-package externalService
+package eventHandler
 
 import (
 	"encoding/json"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
-	"log"
 	"os"
 	"subscriptions-service/pkg/domain"
 )
@@ -14,28 +14,28 @@ type ExternalEventListener struct {
 	balanceRepo    domain.BalanceRepo
 }
 
-func (e *ExternalEventListener) ActivateTextTranslatedHandler() {
+func (e *ExternalEventListener) ActivateExternalEventListener() {
 	go func() {
-		log.Printf("Consumer ready, PID: %d", os.Getpid())
+		log.Info("Consumer ready, PID: %d", os.Getpid())
 		for d := range e.messageChannel {
-			log.Printf("Received a message: %s", d.Body)
+			log.Info("Received a message: %s", d.Body)
 			eventInfo := &textTranslatedInfo{}
 			err := json.Unmarshal(d.Body, eventInfo)
 			if err != nil {
-				log.Printf("Error decoding JSON: %s", err)
+				log.Error("Error decoding JSON: %s", err)
 			}
 			userID, err := uuid.Parse(eventInfo.UserID)
 			if err != nil {
-				log.Printf("Error decoding JSON: %s", err)
+				log.Error("Error decoding JSON: %s", err)
 			}
 			if err := d.Ack(false); err != nil {
-				log.Printf("Error acknowledging message : %s", err)
+				log.Error("Error acknowledging message : %s", err)
 			} else {
-				log.Printf("Acknowledged message")
+				log.Info("Acknowledged message")
 			}
 			err = domain.NewBalanceService(e.balanceRepo).WriteOffFromBalance(userID, eventInfo.Score)
 			if err != nil {
-				log.Printf("Error decoding JSON: %s", err)
+				log.Error("Error decoding JSON: %s", err)
 			}
 		}
 	}()

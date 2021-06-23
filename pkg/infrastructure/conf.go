@@ -5,7 +5,8 @@ import "github.com/kelseyhightower/envconfig"
 const appID = "balanceservice"
 
 type Config struct {
-	ServeRESTAddress string `envconfig:"serve_rest_address" default:":8000"`
+	GRPCAddress      string `envconfig:"grpc_address"`
+	HTTPProxyAddress string `envconfig:"http_proxy_address"`
 	DBUser           string `envconfig:"db_user"`
 	DBName           string `envconfig:"db_name"`
 	DBPort           string `envconfig:"db_port"`

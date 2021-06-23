@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "./;api";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+message UserID {
+  string userID = 1;
+}
+
+message BalanceMovementData {
+  string userID = 1;
+  int32 score = 2;
+}
+
+message CanWriteOffFromBalanceResponse {
+  google.protobuf.BoolValue result = 1;
+}
+
+service TranslationService {
+  rpc CreateBalance (UserID) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/balance/create",
+      body: "*"
+    };
+  }
+  rpc TopUpBalance (BalanceMovementData) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/balance/topUp",
+      body: "*"
+    };
+  }
+  rpc WriteOffFromBalance (BalanceMovementData) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/balance/writeOff",
+      body: "*"
+    };
+  }
+  rpc RemoveBalance (UserID) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/balance/remove",
+      body: "*"
+    };
+  }
+  rpc CanWriteOffFromBalance (BalanceMovementData) returns (CanWriteOffFromBalanceResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/balance/canWriteOff"
+    };
+  }
+}

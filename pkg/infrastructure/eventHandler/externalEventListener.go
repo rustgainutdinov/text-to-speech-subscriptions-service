@@ -16,26 +16,26 @@ type ExternalEventListener struct {
 
 func (e *ExternalEventListener) ActivateExternalEventListener() {
 	go func() {
-		log.Info("Consumer ready, PID: %d", os.Getpid())
+		log.Infof("Consumer ready, PID: %d", os.Getpid())
 		for d := range e.messageChannel {
-			log.Info("Received a message: %s", d.Body)
+			log.Infof("Received a message: %s", d.Body)
 			eventInfo := &textTranslatedInfo{}
 			err := json.Unmarshal(d.Body, eventInfo)
 			if err != nil {
-				log.Error("Error decoding JSON: %s", err)
+				log.Errorf("Error decoding JSON: %s", err)
 			}
 			userID, err := uuid.Parse(eventInfo.UserID)
 			if err != nil {
-				log.Error("Error decoding JSON: %s", err)
+				log.Errorf("Error decoding JSON: %s", err)
 			}
 			if err := d.Ack(false); err != nil {
-				log.Error("Error acknowledging message : %s", err)
+				log.Errorf("Error acknowledging message : %s", err)
 			} else {
 				log.Info("Acknowledged message")
 			}
 			err = domain.NewBalanceService(e.balanceRepo).WriteOffFromBalance(userID, eventInfo.Score)
 			if err != nil {
-				log.Error("Error decoding JSON: %s", err)
+				log.Errorf("Error decoding JSON: %s", err)
 			}
 		}
 	}()

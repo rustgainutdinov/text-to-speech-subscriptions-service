@@ -1,24 +1,81 @@
 package server
 
 import (
-	"github.com/gorilla/mux"
-	"net/http"
+	"context"
+	"fmt"
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
+	"subscriptions-service/api"
+	"subscriptions-service/pkg/infrastructure"
 )
 
-func Router(srv Server) http.Handler {
-	r := mux.NewRouter()
-	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/balance/create", srv.createBalance).Methods(http.MethodPost)
-	s.HandleFunc("/balance/topUp", srv.topUpBalance).Methods(http.MethodPost)
-	s.HandleFunc("/balance/writeOff", srv.writeOffFromBalance).Methods(http.MethodPost)
-	s.HandleFunc("/balance/remove", srv.removeBalance).Methods(http.MethodPost)
-	s.HandleFunc("/balance/canWriteOff", srv.canWriteOffFromBalance).Methods(http.MethodGet)
-	return initJSONResponse(r)
+type BalanceServer struct {
+	DependencyContainer infrastructure.DependencyContainer
 }
 
-func initJSONResponse(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		h.ServeHTTP(w, r)
-	})
+var ErrInvalidUUID = fmt.Errorf("invalid uuid")
+
+func (t *BalanceServer) CreateBalance(_ context.Context, req *api.UserID) (*empty.Empty, error) {
+	userID, err := parseUUID(req.UserID)
+	if err != nil {
+		return &empty.Empty{}, err
+	}
+	balanceService := t.DependencyContainer.NewBalanceService()
+	err = balanceService.CreateBalance(userID)
+	return &empty.Empty{}, err
+}
+
+func (t *BalanceServer) TopUpBalance(_ context.Context, req *api.BalanceMovementData) (*empty.Empty, error) {
+	userID, err := parseUUID(req.UserID)
+	if err != nil {
+		return &empty.Empty{}, err
+	}
+	balanceService := t.DependencyContainer.NewBalanceService()
+	err = balanceService.TopUpBalance(userID, int(req.Score))
+	return &empty.Empty{}, err
+}
+
+func (t *BalanceServer) WriteOffFromBalance(_ context.Context, req *api.BalanceMovementData) (*empty.Empty, error) {
+	userID, err := parseUUID(req.UserID)
+	if err != nil {
+		return &empty.Empty{}, err
+	}
+	balanceService := t.DependencyContainer.NewBalanceService()
+	err = balanceService.WriteOffFromBalance(userID, int(req.Score))
+	return &empty.Empty{}, err
+
+}
+
+func (t *BalanceServer) RemoveBalance(_ context.Context, req *api.UserID) (*empty.Empty, error) {
+	userID, err := parseUUID(req.UserID)
+	if err != nil {
+		return &empty.Empty{}, err
+	}
+	balanceService := t.DependencyContainer.NewBalanceService()
+	err = balanceService.RemoveBalance(userID)
+	return &empty.Empty{}, err
+}
+
+func (t *BalanceServer) CanWriteOffFromBalance(_ context.Context, req *api.BalanceMovementData) (*api.CanWriteOffFromBalanceResponse, error) {
+	userID, err := parseUUID(req.UserID)
+	if err != nil {
+		return &api.CanWriteOffFromBalanceResponse{}, err
+	}
+	balanceService := t.DependencyContainer.NewBalanceService()
+	canWriteOff, err := balanceService.CanWriteOffFromBalance(userID, int(req.Score))
+	if err != nil {
+		return &api.CanWriteOffFromBalanceResponse{}, err
+	}
+	log.Info(canWriteOff)
+	return &api.CanWriteOffFromBalanceResponse{Result: &wrappers.BoolValue{Value: canWriteOff}}, nil
+}
+
+func parseUUID(str string) (uuid.UUID, error) {
+	uid, err := uuid.Parse(str)
+	if err != nil {
+		return uuid.UUID{}, ErrInvalidUUID
+	}
+	return uid, nil
 }

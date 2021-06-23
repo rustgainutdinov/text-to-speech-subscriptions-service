@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"subscriptions-service/pkg/domain"
@@ -14,9 +15,11 @@ func (c *balanceRepo) FindOne(userID uuid.UUID) (domain.Balance, error) {
 	var balance sqlxBalance
 	err := c.db.Get(&balance, "SELECT * FROM balance WHERE id_user=$1", userID.String())
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, domain.ErrBalanceIsNotFound
+		}
 		return nil, err
 	}
-	//TODO: добавить обработку ошибки not found (ErrTranslationIsNotFound)
 	return domain.LoadBalance(userID, balance.Score), err
 }
 
